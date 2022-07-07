@@ -1,23 +1,22 @@
 # Skaldhor.HelperFunctions
-PowerShell module with custom functions.
 
-# Description
-This PowerShell Module contains functions for easier administration of the Windows Registry.
+## Description
+This PowerShell Module contains helper functions for easier administration of the Windows Registry.
 
-# Installation
+## Installation
 Run the following command in PowerShell to install the module:
 `Install-Module -Name "Skaldhor.HelperFunctions"`
 
 You can also download the module from [PSGallery](https://www.powershellgallery.com/packages/Skaldhor.HelperFunctions).
 
-# Usage
-## Overview
+## Usage
+### Overview
 Import the module with the following command:
 `Import-Module -Name "Skaldhor.HelperFunctions"`
 
 Run the commands `Get-RegistryItem`, `New-RegistryItem` and `Remove-RegistryItem` to see, set/create and remove registry items.
 
-## Examples
+### Examples
 `Get-RegistryItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion"`
 
 When using `New-RegistryItem` the value for the "Path" parameter must end with the syntax "<ProperyName.PropertyType>".\
