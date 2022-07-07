@@ -4,9 +4,7 @@
 This PowerShell Module contains helper functions for easier administration of the Windows Registry.
 
 ## Installation
-Run the following command in PowerShell to install the module:
-`Install-Module -Name "Skaldhor.HelperFunctions"`
-
+Run the following command in PowerShell to install the module: `Install-Module -Name "Skaldhor.HelperFunctions"`\
 You can also download the module from [PSGallery](https://www.powershellgallery.com/packages/Skaldhor.HelperFunctions).
 
 ## Usage
