@@ -1,7 +1,7 @@
 # Skaldhor.HelperFunctions
 
 ## Description
-This PowerShell Module contains helper functions for:\
+This PowerShell Module contains helper functions for:
 - easier administration of the Windows Registry
 - easier uninstalling of old PowerShell modules from PowerShellGet
 
@@ -25,14 +25,14 @@ Run the commands `Get-ModulesWithMultipleVersions` and `Remove-OldModuleVersions
 When using `New-RegistryItem` the value for the "Path" parameter must end with the following syntax:\
 `<ProperyName.PropertyType>`\
 The PropertyType must be one of: "String", "DWord", "QWord", "Binary", "MultiString", "ExpandString", "Unknown", depending on what entry you want to create.\
-`New-RegistryItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\TestString.String" -Value "test"`
+`New-RegistryItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\TestString.String" -Value "test"`\
 `New-RegistryItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\EnableSomeSettings.DWord" -Value 1`
 
 `Remove-RegistryItem -Path "HKLM:\SOFTWARE\Policies\Google\Chrome\BrowserGuestModeEnabled"`
 
 `Get-ModulesWithMultipleVersions`
 
-`Remove-OldModuleVersions -ModuleNames "Modul1"`
-`Remove-OldModuleVersions -ModuleNames "Modul1", "Modul3", "Modul5"`
-You can use the the string "All" to uninstall all outdated module versions you have currentyl installed.
+`Remove-OldModuleVersions -ModuleNames "Modul1"`\
+`Remove-OldModuleVersions -ModuleNames "Modul1", "Modul3", "Modul5"`\
+You can use the the string "All" to uninstall all outdated module versions you have currentyl installed.\
 `Remove-OldModuleVersions -ModuleNames "All"`
