@@ -34,5 +34,5 @@ The PropertyType must be one of: "String", "DWord", "QWord", "Binary", "MultiStr
 
 `Remove-OldModuleVersions -ModuleNames "Modul1"`\
 `Remove-OldModuleVersions -ModuleNames "Modul1", "Modul3", "Modul5"`\
-You can use the the string "All" to uninstall all outdated module versions you have currentyl installed.\
+You can use the the value "All" to uninstall all outdated module versions you have currentyl installed:\
 `Remove-OldModuleVersions -ModuleNames "All"`
