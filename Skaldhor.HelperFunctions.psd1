@@ -11,7 +11,7 @@
 RootModule = "Skaldhor.HelperFunctions.psm1"
 
 # Version number of this module.
-ModuleVersion = "0.0.2"
+ModuleVersion = "0.0.3"
 
 # Supported PSEditions
 CompatiblePSEditions = @(
@@ -74,7 +74,9 @@ PowerShellVersion = "7.2.4"
 FunctionsToExport = @(
     "Get-RegistryItem",
     "New-RegistryItem",
-    "Remove-RegistryItem"
+    "Remove-RegistryItem",
+    "Get-ModulesWithMultipleVersions",
+    "Remove-OldModuleVersions"
 )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
@@ -101,7 +103,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = @("PSEdition_Core", "PSEdition_Desktop", "Windows", "Registry", "Helper")
+        Tags = @("PSEdition_Core", "PSEdition_Desktop", "Windows", "Registry", "Helper", "Management", "Module", "Modules")
 
         # A URL to the license for this module.
         # LicenseUri = ""
@@ -114,8 +116,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = "
-0.0.2 20220707 - Added license and readme.
-0.0.1 20220707 - Initial beta release to PS Gallery
+0.0.3 2022.07.19 - Added commands for PowerShellModule management/uninstalling old module versions.
+0.0.2 2022.07.07 - Added license and readme.
+0.0.1 2022.07.07 - Initial beta release to PS Gallery
 "
 
         # Prerelease string of this module
