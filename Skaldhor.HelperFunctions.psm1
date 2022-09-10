@@ -97,5 +97,33 @@ function Remove-OldModuleVersions{
     }
 }
 
+function Get-IpConfig{
+    # declare paramters
+    param(
+        [parameter(Mandatory=$false)] [string]$InterfaceAlias
+    )
 
-Export-ModuleMember -Function Get-RegistryItem, New-RegistryItem, Remove-RegistryItem, Get-ModulesWithMultipleVersions, Remove-OldModuleVersions
+    # get config depending on the $InterfaceAlias input
+    if(($null -ne $InterfaceAlias) -and ($InterfaceAlias -ne "")){
+        $Configs = Get-NetIPConfiguration -InterfaceAlias $InterfaceAlias
+    }else{
+        $Configs = Get-NetIPConfiguration
+    }
+    $Objects = foreach($Config in $Configs){
+        # build custom object
+        [ordered]@{
+            NetworkName = $Config.NetProfile.Name
+            Alias = $Config.InterfaceAlias
+            Index = $Config.InterfaceIndex
+            IPv4Address = $Config.IPv4Address
+            IPv4DnsServer = ($Config.DNSServer | Where-Object{$_.AddressFamily -eq 2}).ServerAddresses
+            IPv6Address = $Config.IPv6Address
+            IPv6DnsServer = ($Config.DNSServer | Where-Object{$_.AddressFamily -eq 23}).ServerAddresses
+        }
+    }
+    $Objects = $Objects | ForEach-Object{New-Object object | Add-Member -NotePropertyMembers $_ -PassThru}
+    $Objects | Format-Table
+}
+
+
+Export-ModuleMember -Function Get-RegistryItem, New-RegistryItem, Remove-RegistryItem, Get-ModulesWithMultipleVersions, Remove-OldModuleVersions, Get-IpConfig
