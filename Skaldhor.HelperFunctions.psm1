@@ -62,6 +62,29 @@ function Get-MxRecord{
     
 }
 
+function Get-PublicIp{
+    $PublicIpApiUrls = @(
+        "https://ifconfig.me/ip",
+        "https://api.myip.com",
+        "https://ipinfo.io/ip",
+        "https://icanhazip.com"
+    )
+    foreach($ApiUrl in $PublicIpApiUrls){
+        try{
+            $Ip = Invoke-RestMethod -Uri $ApiUrl -ErrorAction "Stop"
+            Write-Host "Response from '$($ApiUrl)':"
+            if($null -ne $Ip.Ip){
+                $Ip.Ip
+            }else{
+                $Ip
+            }
+            break
+        }catch{
+            Write-Host "Can't reach '$($ApiUrl)'. Error: $($_.Exception.Message)"
+        }
+    }
+}
+
 function Get-RegistryItem{
     param(
         [Parameter(Mandatory=$true, HelpMessage="Path in the format 'HKxx:\path\to\registryKey'.")] [string]$Path
@@ -253,4 +276,4 @@ function Remove-RegistryItem{
     Remove-ItemProperty -Path $ParentPath -Name $ItemName -Force -Confirm:$false
 }
 
-Export-ModuleMember -Function Get-DmarcRecord, Get-IpConfig, Get-ModulesWithMultipleVersions, Get-MxRecord, Get-RegistryItem, Get-SpfRecordEntryIp, Get-SpfRecord, New-RegistryItem, Remove-OldModuleVersions, Remove-RegistryItem
+Export-ModuleMember -Function Get-DmarcRecord, Get-IpConfig, Get-ModulesWithMultipleVersions, Get-MxRecord, Get-PublicIp, Get-RegistryItem, Get-SpfRecordEntryIp, Get-SpfRecord, New-RegistryItem, Remove-OldModuleVersions, Remove-RegistryItem

@@ -11,7 +11,7 @@
 RootModule = "Skaldhor.HelperFunctions.psm1"
 
 # Version number of this module.
-ModuleVersion = "0.0.4"
+ModuleVersion = "0.0.5"
 
 # Supported PSEditions
 CompatiblePSEditions = @(
@@ -76,6 +76,7 @@ FunctionsToExport = @(
     "Get-IpConfig",
     "Get-ModulesWithMultipleVersions",
     "Get-MxRecord",
+    "Get-PublicIp",
     "Get-RegistryItem",
     "Get-SpfRecordEntryIp",
     "Get-SpfRecord",
@@ -121,6 +122,7 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = "
+0.0.5 2023.07.07 - Added command for getting own public IP address from different API providers.
 0.0.4 2023.07.07 - Added commands for getting SPF, DMARC and MX DNS records.
 0.0.3 2022.07.19 - Added commands for PowerShellModule management/uninstalling old module versions.
 0.0.2 2022.07.07 - Added license and readme.
