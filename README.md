@@ -32,7 +32,15 @@ The PropertyType must be one of: "String", "DWord", "QWord", "Binary", "MultiStr
 
 `Get-ModulesWithMultipleVersions`
 
-`Remove-OldModuleVersions -ModuleNames "Modul1"`\
-`Remove-OldModuleVersions -ModuleNames "Modul1", "Modul3", "Modul5"`\
+`Remove-OldModuleVersions -ModuleNames "Module1"`\
+`Remove-OldModuleVersions -ModuleNames "Module1", "Module3", "Module5"`\
 You can use the the value "All" to uninstall all outdated module versions you have currentyl installed:\
 `Remove-OldModuleVersions -ModuleNames "All"`
+
+`Get-IpConfig`
+
+`Get-MxRecord -Domain "gmail.com"`
+
+`Get-SpfRecord -Domain "gmail.com"`
+
+`Get-DmarcRecord -Domain "gmail.com"`

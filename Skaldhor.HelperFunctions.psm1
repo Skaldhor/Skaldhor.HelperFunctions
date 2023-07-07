@@ -1,3 +1,67 @@
+function Get-DmarcRecord{
+    [CmdletBinding()] # for standard parameters like -Verbose or -ErrorAction
+    param(
+        [Parameter(Mandatory=$true, HelpMessage="Domain you want to get the DMARC record for. For example: gmail.com")] [string]$Domain
+    )
+    try{
+        (Resolve-DnsName -Name "_dmarc.$($Domain)" -Type "TXT" -ErrorAction "Stop").Text
+    }catch{
+        throw "Error during DNS resolution: $($_.Exception.Message)"
+    }
+    
+}
+
+function Get-IpConfig{
+    # declare paramters
+    param(
+        [parameter(Mandatory=$false)] [string]$InterfaceAlias
+    )
+
+    # get config depending on the $InterfaceAlias input
+    if(($null -ne $InterfaceAlias) -and ($InterfaceAlias -ne "")){
+        $Configs = Get-NetIPConfiguration -InterfaceAlias $InterfaceAlias
+    }else{
+        $Configs = Get-NetIPConfiguration
+    }
+    $Objects = foreach($Config in $Configs){
+        # build custom object
+        [ordered]@{
+            NetworkName = $Config.NetProfile.Name
+            Alias = $Config.InterfaceAlias
+            Index = $Config.InterfaceIndex
+            IPv4Address = $Config.IPv4Address
+            IPv4DnsServer = ($Config.DNSServer | Where-Object{$_.AddressFamily -eq 2}).ServerAddresses
+            IPv6Address = $Config.IPv6Address
+            IPv6DnsServer = ($Config.DNSServer | Where-Object{$_.AddressFamily -eq 23}).ServerAddresses
+        }
+    }
+    $Objects = $Objects | ForEach-Object{New-Object object | Add-Member -NotePropertyMembers $_ -PassThru}
+    $Objects | Format-Table
+}
+
+function Get-ModulesWithMultipleVersions{
+    $AllModules = Get-InstalledModule
+    foreach($Module in $AllModules){
+        $Versions = Get-InstalledModule -Name $Module.Name -AllVersions
+        if($Versions.Count -ge 2){
+            Write-Host $Module.Name
+        }
+    }
+}
+
+function Get-MxRecord{
+    [CmdletBinding()] # for standard parameters like -Verbose or -ErrorAction
+    param(
+        [Parameter(Mandatory=$true, HelpMessage="Domain you want to get the MX record for. For example: gmail.com")] [string]$Domain
+    )
+    try{
+        Resolve-DnsName -Name $Domain -Type "MX" -ErrorAction "Stop" | Sort-Object -Property "Preference"
+    }catch{
+        throw "Error during DNS resolution: $($_.Exception.Message)"
+    }
+    
+}
+
 function Get-RegistryItem{
     param(
         [Parameter(Mandatory=$true, HelpMessage="Path in the format 'HKxx:\path\to\registryKey'.")] [string]$Path
@@ -13,6 +77,108 @@ function Get-RegistryItem{
     }
     $ItemObjects = $ItemList | ForEach-Object{New-Object object | Add-Member -NotePropertyMembers $_ -PassThru}
     $ItemObjects
+}
+
+function Get-SpfRecordEntryIp{
+    [CmdletBinding()] # for standard parameters like -Verbose or -ErrorAction
+    param(
+        [Parameter(Mandatory=$true, HelpMessage="Get IP address for SPF entry in the format 'type:value'. For example: include:spf.protection.outlook.com")] [string]$SpfEntry
+    )
+
+    try{
+        $Ip = $null
+        if($SpfEntry -like "a:*"){
+            $Ip = (Resolve-DnsName -Name $SpfEntry.Split(":")[1] -Type "A_AAAA" -ErrorAction "Stop").IPAddress
+        }elseif($SpfEntry -like "include:*") {
+            $Domains = Resolve-DnsName -Name $SpfEntry.Split(":")[1] -Type "TXT" -ErrorAction "Stop"
+            $SpfEntries = $Domains.Text.Split(" ")[1..($Domains.Text.Split(" ").Count - 2)]
+            foreach($SpfEntry in $SpfEntries){
+                Get-SpfRecordEntryIp -SpfEntry $SpfEntry
+            }
+        }elseif($SpfEntry -like "ip4:*"){
+            $Ip = $SpfEntry.Substring(4,($SpfEntry.length - 4))
+        }elseif($SpfEntry -like "ip6:*"){
+            $Ip = $SpfEntry.Substring(4,($SpfEntry.length - 4))
+        }elseif($SpfEntry -like "mx*"){
+            if($SpfEntry -eq "mx"){
+                $MxDomain = $Domain
+            }elseif($SpfEntry -like "mx:*"){
+                $MxDomain = $SpfEntry.Split(":")[1]
+            }else{
+                throw "Error: Invalid MX record!"
+            }
+
+            $Domains = Resolve-DnsName -Name $MxDomain -Type "MX" -ErrorAction "Stop"
+            $SpfEntries = $Domains.NameExchange
+            foreach($SpfEntry in $SpfEntries){
+                Get-SpfRecordEntryIp -SpfEntry "a:$($SpfEntry)"
+            }
+        }elseif($SpfEntry -like "redirect=*"){
+            $TxtRecords = Resolve-DnsName -Name $SpfEntry.Substring(9,($SpfEntry.length - 9)) -Type "TXT" -ErrorAction "Stop"
+            $SpfRecord = $TxtRecords | Where-Object{$_.Text -like "v=spf*"}
+            if($SpfRecord.Count -gt 1){
+                throw "Error: Domain has more than one SPF record!"
+            }
+
+            if($SpfRecord.Text -like "*all"){
+                $SpfEntries = $SpfRecord.Text.Split(" ")[1..($SpfRecord.Text.Split(" ").Count - 2)]
+            }else{
+                $SpfEntries = $SpfRecord.Text.Split(" ")[1..($SpfRecord.Text.Split(" ").Count - 1)]
+            }
+
+            foreach($SpfEntry in $SpfEntries){
+                Get-SpfRecordEntryIp -SpfEntry $SpfEntry
+            }
+        }else{
+            throw "Error: Invalid SPF Syntax in '$($SpfEntry)'!"
+        }
+        $Ip
+    }catch{
+        throw "Error during DNS resolution: $($_.Exception.Message)"
+    }
+}
+
+function Get-SpfRecord{
+    [CmdletBinding()] # for standard parameters like -Verbose or -ErrorAction
+    param(
+        [Parameter(Mandatory=$true, HelpMessage="Domain you want to get the SPF record for. For example: gmail.com")] [string]$Domain
+    )
+    
+    try{
+        $TxtRecords = Resolve-DnsName -Name $Domain -Type "TXT" -ErrorAction "Stop"
+        $SpfRecord = $TxtRecords | Where-Object{$_.Text -like "v=spf*"}
+        if($SpfRecord.Count -gt 1){
+            throw "Error: Domain has more than one SPF record!"
+        }
+
+        if($SpfRecord.Text -like "*all"){
+            $SpfEntries = $SpfRecord.Text.Split(" ")[1..($SpfRecord.Text.Split(" ").Count - 2)]
+        }else{
+            $SpfEntries = $SpfRecord.Text.Split(" ")[1..($SpfRecord.Text.Split(" ").Count - 1)]
+        }
+
+        $ResolvedIps = @()
+        foreach($SpfEntry in $SpfEntries){
+            $ResolvedIps += Get-SpfRecordEntryIp -SpfEntry $SpfEntry
+        }
+
+        Write-Host "SPF Record String:"
+        $SpfRecord.Text
+
+        Write-Host ""
+        Write-Host ""
+
+        Write-Host "Direct SPF Record entries:"
+        $SpfEntries
+
+        Write-Host ""
+        Write-Host ""
+
+        Write-Host "All Resolved IPs:"
+        $ResolvedIps | Sort-Object -Unique
+    }catch{
+        throw "Error during DNS resolution: $($_.Exception.Message)"
+    }
 }
 
 function New-RegistryItem{
@@ -38,25 +204,6 @@ function New-RegistryItem{
     }else{
         Remove-ItemProperty -Path $ParentPath -Name $ItemName -Force -Confirm:$false
         New-ItemProperty -Path $ParentPath -Name $ItemName -Value $Value -PropertyType $ItemType
-    }
-}
-
-function Remove-RegistryItem{
-    param(
-        [Parameter(Mandatory=$true, HelpMessage="Path in the format 'HKxx:\path\to\itemToDelete'.")] [string]$Path
-    )
-    $ParentPath = Split-Path -Path $Path -Parent
-    $ItemName = Split-Path -Path $Path -Leaf
-    Remove-ItemProperty -Path $ParentPath -Name $ItemName -Force -Confirm:$false
-}
-
-function Get-ModulesWithMultipleVersions{
-    $AllModules = Get-InstalledModule
-    foreach($Module in $AllModules){
-        $Versions = Get-InstalledModule -Name $Module.Name -AllVersions
-        if($Versions.Count -ge 2){
-            Write-Host $Module.Name
-        }
     }
 }
 
@@ -97,33 +244,13 @@ function Remove-OldModuleVersions{
     }
 }
 
-function Get-IpConfig{
-    # declare paramters
+function Remove-RegistryItem{
     param(
-        [parameter(Mandatory=$false)] [string]$InterfaceAlias
+        [Parameter(Mandatory=$true, HelpMessage="Path in the format 'HKxx:\path\to\itemToDelete'.")] [string]$Path
     )
-
-    # get config depending on the $InterfaceAlias input
-    if(($null -ne $InterfaceAlias) -and ($InterfaceAlias -ne "")){
-        $Configs = Get-NetIPConfiguration -InterfaceAlias $InterfaceAlias
-    }else{
-        $Configs = Get-NetIPConfiguration
-    }
-    $Objects = foreach($Config in $Configs){
-        # build custom object
-        [ordered]@{
-            NetworkName = $Config.NetProfile.Name
-            Alias = $Config.InterfaceAlias
-            Index = $Config.InterfaceIndex
-            IPv4Address = $Config.IPv4Address
-            IPv4DnsServer = ($Config.DNSServer | Where-Object{$_.AddressFamily -eq 2}).ServerAddresses
-            IPv6Address = $Config.IPv6Address
-            IPv6DnsServer = ($Config.DNSServer | Where-Object{$_.AddressFamily -eq 23}).ServerAddresses
-        }
-    }
-    $Objects = $Objects | ForEach-Object{New-Object object | Add-Member -NotePropertyMembers $_ -PassThru}
-    $Objects | Format-Table
+    $ParentPath = Split-Path -Path $Path -Parent
+    $ItemName = Split-Path -Path $Path -Leaf
+    Remove-ItemProperty -Path $ParentPath -Name $ItemName -Force -Confirm:$false
 }
 
-
-Export-ModuleMember -Function Get-RegistryItem, New-RegistryItem, Remove-RegistryItem, Get-ModulesWithMultipleVersions, Remove-OldModuleVersions, Get-IpConfig
+Export-ModuleMember -Function Get-DmarcRecord, Get-IpConfig, Get-ModulesWithMultipleVersions, Get-MxRecord, Get-RegistryItem, Get-SpfRecordEntryIp, Get-SpfRecord, New-RegistryItem, Remove-OldModuleVersions, Remove-RegistryItem

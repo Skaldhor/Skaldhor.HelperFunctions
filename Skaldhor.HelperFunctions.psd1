@@ -11,7 +11,7 @@
 RootModule = "Skaldhor.HelperFunctions.psm1"
 
 # Version number of this module.
-ModuleVersion = "0.0.3"
+ModuleVersion = "0.0.4"
 
 # Supported PSEditions
 CompatiblePSEditions = @(
@@ -29,13 +29,13 @@ Author = "Florian Kolb"
 CompanyName = "Florian Kolb"
 
 # Copyright statement for this module
-Copyright = "(c) 2022 Florian Kolb. All rights reserved."
+Copyright = "(c) 2023 Florian Kolb. All rights reserved."
 
 # Description of the functionality provided by this module
 Description = "PowerShell module with custom helper functions."
 
 # Minimum version of the PowerShell engine required by this module
-PowerShellVersion = "7.2.4"
+PowerShellVersion = "7.3.5"
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ""
@@ -72,11 +72,16 @@ PowerShellVersion = "7.2.4"
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 FunctionsToExport = @(
-    "Get-RegistryItem",
-    "New-RegistryItem",
-    "Remove-RegistryItem",
+    "Get-DmarcRecord",
+    "Get-IpConfig",
     "Get-ModulesWithMultipleVersions",
-    "Remove-OldModuleVersions"
+    "Get-MxRecord",
+    "Get-RegistryItem",
+    "Get-SpfRecordEntryIp",
+    "Get-SpfRecord",
+    "New-RegistryItem",
+    "Remove-OldModuleVersions",
+    "Remove-RegistryItem"
 )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
@@ -116,6 +121,7 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = "
+0.0.4 2023.07.07 - Added commands for getting SPF, DMARC and MX DNS records.
 0.0.3 2022.07.19 - Added commands for PowerShellModule management/uninstalling old module versions.
 0.0.2 2022.07.07 - Added license and readme.
 0.0.1 2022.07.07 - Initial beta release to PS Gallery
