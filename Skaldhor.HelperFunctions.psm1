@@ -11,6 +11,24 @@ function Get-DmarcRecord{
     
 }
 
+function Get-ExternalTcpConnection{
+    try{
+        $Connections = Get-NetTCPConnection -ErrorAction "Stop" | Where-Object{($_.RemoteAddress -ne "::") -and ($_.RemoteAddress -ne "::1") -and ($_.RemoteAddress -ne "127.0.0.1") -and ($_.LocalPort -ne 0) -and ($_.RemotePort -ne 0) -and ($_.OwningProcess -ne 0)}
+    }catch{
+        throw "Error when listing all TCP connections: $($_.Exception.Message)"
+    }
+    try{
+        foreach($Connection in $Connections){
+            $OwningProcessInfo = Get-Process -Id $Connection.OwningProcess -ErrorAction "Stop"
+            $Connection | Add-Member -NotePropertyName "OwningProcessName" -NotePropertyValue $OwningProcessInfo.ProcessName -ErrorAction "Stop"
+            $Connection | Add-Member -NotePropertyName "OwningProcessInfo" -NotePropertyValue $OwningProcessInfo -ErrorAction "Stop"
+            $Connection
+        }
+    }catch{
+        throw "Error during process query: $($_.Exception.Message)"
+    }
+}
+
 function Get-IpConfig{
     # declare paramters
     param(
@@ -276,4 +294,46 @@ function Remove-RegistryItem{
     Remove-ItemProperty -Path $ParentPath -Name $ItemName -Force -Confirm:$false
 }
 
-Export-ModuleMember -Function Get-DmarcRecord, Get-IpConfig, Get-ModulesWithMultipleVersions, Get-MxRecord, Get-PublicIp, Get-RegistryItem, Get-SpfRecordEntryIp, Get-SpfRecord, New-RegistryItem, Remove-OldModuleVersions, Remove-RegistryItem
+function Test-PrivateIp{
+    param(
+        [string]$IpAddress
+    )
+    # create function to compare IPs
+    function Get-Int32FromIp{
+        param(
+            [string]$Ip
+        )
+        $IpAddressBytes = [system.net.ipaddress]::Parse($Ip).GetAddressBytes()
+        [array]::Reverse($IpAddressBytes)
+        $Int32Ip = [system.BitConverter]::ToUInt32($IpAddressBytes, 0)
+        $Int32Ip
+    }
+
+    # hardcode private IP networks
+    $IpRange1Start = Get-Int32FromIp -Ip "10.0.0.0"
+    $IpRange1End = Get-Int32FromIp -Ip "10.255.255.255"
+    $IpRange2Start = Get-Int32FromIp -Ip "172.16.0.0"
+    $IpRange2End = Get-Int32FromIp -Ip "172.31.255.255"
+    $IpRange3Start = Get-Int32FromIp -Ip "192.168.0.0"
+    $IpRange3End = Get-Int32FromIp -Ip "192.168.255.255"
+
+    # process input IP
+    try{
+        $IpAddress = Get-Int32FromIp -Ip $IpAddress -ErrorAction "Stop"
+    }catch{
+        throw $_.Exception.Message
+    }
+    $IsPrivateIp = $false
+    if(($IpRange1Start -le $IpAddress) -and ($IpAddress -le $IpRange1End)){
+        $IsPrivateIp = $true
+    }elseif(($IpRange2Start -le $IpAddress) -and ($IpAddress -le $IpRange2End)){
+        $IsPrivateIp = $true
+    }elseif(($IpRange3Start -le $IpAddress) -and ($IpAddress -le $IpRange3End)){
+        $IsPrivateIp = $true
+    }
+
+    # return boolean
+    $IsPrivateIp
+}
+
+Export-ModuleMember -Function Get-DmarcRecord, Get-ExternalTcpConnection, Get-IpConfig, Get-ModulesWithMultipleVersions, Get-MxRecord, Get-PublicIp, Get-RegistryItem, Get-SpfRecordEntryIp, Get-SpfRecord, New-RegistryItem, Remove-OldModuleVersions, Remove-RegistryItem, Test-PrivateIp

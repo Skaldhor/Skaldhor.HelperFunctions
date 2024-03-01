@@ -11,7 +11,7 @@
 RootModule = "Skaldhor.HelperFunctions.psm1"
 
 # Version number of this module.
-ModuleVersion = "0.0.5"
+ModuleVersion = "0.0.6"
 
 # Supported PSEditions
 CompatiblePSEditions = @(
@@ -29,13 +29,13 @@ Author = "Florian Kolb"
 CompanyName = "Florian Kolb"
 
 # Copyright statement for this module
-Copyright = "(c) 2023 Florian Kolb. All rights reserved."
+Copyright = "(c) 2024 Florian Kolb. All rights reserved."
 
 # Description of the functionality provided by this module
 Description = "PowerShell module with custom helper functions."
 
 # Minimum version of the PowerShell engine required by this module
-PowerShellVersion = "7.3.5"
+PowerShellVersion = "7.0.0"
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ""
@@ -73,6 +73,7 @@ PowerShellVersion = "7.3.5"
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 FunctionsToExport = @(
     "Get-DmarcRecord",
+    "Get-ExternalTcpConnection",
     "Get-IpConfig",
     "Get-ModulesWithMultipleVersions",
     "Get-MxRecord",
@@ -82,7 +83,8 @@ FunctionsToExport = @(
     "Get-SpfRecord",
     "New-RegistryItem",
     "Remove-OldModuleVersions",
-    "Remove-RegistryItem"
+    "Remove-RegistryItem",
+    "Test-PrivateIp"
 )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
@@ -122,6 +124,8 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = "
+0.0.6 2024.03.01 - Added command for testing if a specified IP address is private or public.
+                   Added command for showing external TCP connections.
 0.0.5 2023.07.07 - Added command for getting own public IP address from different API providers.
 0.0.4 2023.07.07 - Added commands for getting SPF, DMARC and MX DNS records.
 0.0.3 2022.07.19 - Added commands for PowerShellModule management/uninstalling old module versions.

@@ -44,3 +44,8 @@ You can use the the value "All" to uninstall all outdated module versions you ha
 `Get-SpfRecord -Domain "gmail.com"`
 
 `Get-DmarcRecord -Domain "gmail.com"`
+
+`Get-ExternalTcpConnection | Format-Table LocalAddress, LocalPort, RemoteAddress, RemotePort, State, AppliedSetting, OwningProcess, OwningProcessName, OwningProcessInfo`
+
+`Test-PrivateIp -IpAddress "10.0.1.2"`
+`Test-PrivateIp -IpAddress "8.8.8.8"`
